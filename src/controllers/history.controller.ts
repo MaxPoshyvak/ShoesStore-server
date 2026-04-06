@@ -12,6 +12,11 @@ export const addHistory = async (req: RequestWithUser, res: Response) => {
             return res.status(400).json({ message: 'userId and goodId are required' });
         }
 
+        const goodExist = await pool.query('SELECT id FROM goods WHERE id = $1', [goodId]);
+        if (goodExist.rowCount === 0) {
+            return res.status(404).json({ message: 'Good not found' });
+        }
+
         const historyEntry = new History({ userId, goodId });
         await historyEntry.save();
 

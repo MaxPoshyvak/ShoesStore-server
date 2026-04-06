@@ -5,6 +5,7 @@ import goodsRoutes from './goods.routes';
 import paymentsRoutes from './payments.routes';
 import historyRoutes from './history.routes';
 import searchInfoRoutes from './searchInfo.routes';
+import feedbacksRoutes from './feedbacks.routes';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use('/payments', paymentsRoutes);
 
 router.use('/history', historyRoutes);
 router.use('/search-info', searchInfoRoutes);
+router.use('/feedbacks', feedbacksRoutes);
 
 export default router;
