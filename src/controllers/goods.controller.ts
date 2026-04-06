@@ -12,6 +12,20 @@ export const getGoods = async (req: Request, res: Response) => {
     }
 };
 
+export const getGoodById = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('SELECT * FROM goods WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Good not found' });
+        }
+        res.status(200).json({ good: result.rows[0] });
+    } catch (error) {
+        console.error('Error fetching good by id:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const postGoods = async (req: Request, res: Response) => {
     const {
         name,
