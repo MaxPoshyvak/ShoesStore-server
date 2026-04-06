@@ -3,14 +3,7 @@ import pool from '../config/dataBase/postgreSQL';
 // import { Stripe } from 'stripe/cjs/stripe.core';
 import Stripe from 'stripe';
 
-interface RequestWithUser extends Request {
-    user?: {
-        id: number;
-        username: string;
-        email: string;
-        role: string;
-    };
-}
+import type { RequestWithUser } from '../types';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2023-10-16',

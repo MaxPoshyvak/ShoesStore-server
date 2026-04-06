@@ -9,6 +9,4 @@ router.post('/', authMiddleware, postOrders);
 router.get('/', authMiddleware, adminMiddleware, getOrders);
 router.get('/:id', authMiddleware, adminMiddleware, getOrderById);
 
-// router.get('/', getOrders);
-
 export default router;

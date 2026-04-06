@@ -1,14 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/dataBase/postgreSQL';
-
-interface RequestWithUser extends Request {
-    user?: {
-        id: string;
-        username: string;
-        email: string;
-        role: string;
-    };
-}
+import type { RequestWithUser } from '../types';
 
 export const postOrders = async (req: RequestWithUser, res: Response): Promise<void> => {
     const { shipping_address, payment_method, customer_notes, items } = req.body;

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import pool from '../config/dataBase/postgreSQL';
-import { json } from 'stream/consumers';
 
 export const getGoods = async (req: Request, res: Response) => {
     try {
