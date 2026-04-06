@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import pool from '../config/dataBase/postgreSQL';
 // import { Stripe } from 'stripe/cjs/stripe.core';
-import Stripe from 'stripe';
+import Stripe = require('stripe');
 
 import type { RequestWithUser } from '../types';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+const stripe = new (Stripe as any)(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2023-10-16',
 });
 
@@ -83,7 +83,7 @@ export const webhookPayment = async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    let event: Stripe.Event;
+    let event: any;
 
     try {
         // 2. Stripe сам перевіряє підпис і розшифровує подію.
@@ -98,7 +98,7 @@ export const webhookPayment = async (req: Request, res: Response) => {
     // 3. Обробляємо тільки ту подію, яка нам потрібна (успішна оплата)
     if (event.type === 'checkout.session.completed') {
         // Дістаємо об'єкт сесії
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object as any;
 
         // Дістаємо наш orderId, який ми ховали в metadata при створенні!
         const orderId = session.metadata?.orderId;

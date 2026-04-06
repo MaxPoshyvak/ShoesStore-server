@@ -2,6 +2,12 @@
 
 Minimal backend template with Express and TypeScript.
 
+## API documentation (Swagger)
+
+- Spec: `documentation/swagger/openapi.yaml`
+- Swagger UI (when server is running): `GET /docs`
+- Raw spec: `GET /openapi.yaml`
+
 ## Install
 
 `bun x degit MaxPoshyvak/express-ts-template backend`
