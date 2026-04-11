@@ -1,30 +1,60 @@
 import { Request, Response } from 'express';
 import pool from '../config/dataBase/postgreSQL';
 import type { RequestWithUser } from '../types';
+import bcrypt from 'bcryptjs';
 
 export const postOrders = async (req: RequestWithUser, res: Response): Promise<void> => {
-    const { shipping_address, payment_method, customer_notes, items } = req.body;
+    // Додали email, username та password, які можуть прийти від неавторизованого юзера
+    const { shipping_address, payment_method, customer_notes, items, email, username, password } = req.body;
 
-    if (!req.user) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-    }
-
-    const userId = req.user.id;
+    let userId: string | number;
 
     try {
+        // --- 1. ЛОГІКА АВТОРИЗАЦІЇ АБО РЕЄСТРАЦІЇ ---
+        if (req.user) {
+            // Юзер авторизований
+            userId = req.user.id;
+        } else {
+            // Юзер не авторизований (гість). Створюємо йому акаунт.
+            if (!email || !username || !password) {
+                res.status(400).json({ error: 'Для замовлення без авторизації потрібні email, username та password' });
+                return;
+            }
+
+            // Перевіряємо, чи не зайнятий email
+            const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+            if (existingUser.rows.length > 0) {
+                res.status(400).json({ error: 'Користувач з таким email вже існує. Будь ласка, увійдіть в акаунт.' });
+                return;
+            }
+
+            // Хешуємо пароль
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+
+            // Створюємо нового користувача (роль за замовчуванням 'user')
+            const newUser = await pool.query(
+                'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
+                [username, email, hashedPassword, 'user'],
+            );
+
+            userId = newUser.rows[0].id;
+        }
+
+        // --- 2. СТАНДАРТНА ЛОГІКА СТВОРЕННЯ ЗАМОВЛЕННЯ ---
+        // Тепер у нас 100% є userId (або старий, або щойно створений)
+
         const itemsFromDB = await pool.query('SELECT id, name, price, stock_quantity FROM goods WHERE id = ANY($1)', [
             items.map((item: any) => item.good_id),
         ]);
 
         if (itemsFromDB.rows.length !== items.length) {
-            res.status(400).json({ error: 'One or more goods not found in database' });
+            res.status(400).json({ error: 'Один або декілька товарів не знайдено в базі' });
             return;
         }
 
         const orderItems = items.map((reqItem: any) => {
             const dbItem = itemsFromDB.rows.find((row) => row.id === reqItem.good_id);
-
             return {
                 good_id: dbItem.id,
                 price: dbItem.price,
@@ -35,7 +65,7 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
 
         const outOfStockItem = orderItems.find((item: any) => item.requested_quantity > item.stock_quantity);
         if (outOfStockItem) {
-            res.status(400).json({ error: `Not enough stock for item ID: ${outOfStockItem.good_id}` });
+            res.status(400).json({ error: `Недостатньо товару на складі для ID: ${outOfStockItem.good_id}` });
             return;
         }
 
@@ -44,6 +74,7 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
             0,
         );
 
+        // Створюємо замовлення
         const result = await pool.query(
             'INSERT INTO orders (user_id, shipping_address, payment_method, customer_notes, total_amount) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [userId, shipping_address, payment_method, customer_notes, total_amount],
@@ -51,15 +82,16 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
 
         const newOrderId = result.rows[0].id;
 
+        // Додаємо товари в order_items
         const setOrderItems = orderItems.map((item: any) => {
             return pool.query(
                 'INSERT INTO order_items (order_id, good_id, quantity, price_at_purchase) VALUES ($1, $2, $3, $4)',
                 [newOrderId, item.good_id, item.requested_quantity, item.price],
             );
         });
-
         await Promise.all(setOrderItems);
 
+        // Віднімаємо залишки на складі
         const updateStockQueries = orderItems.map((item: any) => {
             return pool.query('UPDATE goods SET stock_quantity = stock_quantity - $1 WHERE id = $2', [
                 item.requested_quantity,
@@ -68,10 +100,10 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
         });
         await Promise.all(updateStockQueries);
 
-        res.status(201).json({ message: 'Order created successfully', order: result.rows[0] });
+        res.status(201).json({ message: 'Замовлення успішно створено', order: result.rows[0] });
     } catch (error) {
         console.error('Error creating order:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Внутрішня помилка сервера' });
     }
 };
 
