@@ -5,6 +5,6 @@ import { addFeedbacks, getFeedbacks } from '../controllers/feedbacks.controller'
 const router = Router();
 
 router.post('/add', authMiddleware, addFeedbacks);
-router.get('/get', authMiddleware, getFeedbacks);
+router.get('/get', getFeedbacks);
 
 export default router;
