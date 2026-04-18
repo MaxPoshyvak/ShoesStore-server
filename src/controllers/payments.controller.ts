@@ -38,7 +38,7 @@ export const createPayment = async (req: RequestWithUser, res: Response) => {
 
         const createNewPayment = await pool.query(
             'INSERT INTO payments (order_id, amount, status, provider) VALUES ($1, $2, $3, $4) RETURNING *',
-            [orderId, order.total_amount, 'paid', 'stripe'],
+            [orderId, order.total_amount, 'pending', 'stripe'],
         );
 
         const session = await stripe.checkout.sessions.create({
@@ -118,13 +118,13 @@ export const webhookPayment = async (req: Request, res: Response) => {
             try {
                 await pool.query(
                     `UPDATE payments 
-     SET transaction_id = $1, status = 'success', updated_at = NOW() 
-     WHERE id = (
-         SELECT id FROM payments 
-         WHERE order_id = $2 AND status = 'pending' 
-         ORDER BY created_at DESC 
-         LIMIT 1
-     )`,
+                    SET transaction_id = $1, status = 'success', updated_at = NOW() 
+                    WHERE id = (
+                        SELECT id FROM payments 
+                        WHERE order_id = $2 AND status = 'pending' 
+                         ORDER BY created_at DESC 
+                     LIMIT 1
+                     )`,
                     [transactionId, orderId],
                 );
 
