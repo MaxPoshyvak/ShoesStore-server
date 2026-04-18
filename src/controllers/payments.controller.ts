@@ -83,12 +83,20 @@ export const webhookPayment = async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+    console.log('--- STRIPE WEBHOOK DEBUG ---');
+    console.log('1. Секрет знайдено?', !!webhookSecret);
+    console.log('2. Секрет починається на:', webhookSecret ? webhookSecret.substring(0, 10) + '...' : 'UNDEFINED');
+    console.log('3. Чи є req.body Буфером (сирими даними)?', Buffer.isBuffer(req.body));
+    console.log('4. Тип req.body:', typeof req.body);
+
     let event: any;
 
     try {
         // 2. Stripe сам перевіряє підпис і розшифровує подію.
         // Тут req.body — це сирий Buffer (завдяки express.raw)
-        event = stripe.webhooks.constructEvent(req.body, sig as string, webhookSecret as string);
+        const payloadString = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : req.body;
+
+        event = stripe.webhooks.constructEvent(payloadString, sig as string, webhookSecret as string);
     } catch (err: any) {
         console.error(`❌ Помилка підпису вебхука: ${err.message}`);
         // Обов'язково повертаємо 400, якщо підпис не збігається
