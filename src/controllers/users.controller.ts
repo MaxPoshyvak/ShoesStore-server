@@ -64,7 +64,7 @@ export const userLogin = async (req: Request, res: Response) => {
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const users = await pool.query('SELECT id, username, email FROM users');
+        const users = await pool.query('SELECT id, username, email, role, created_at FROM users');
         res.status(200).json(users.rows);
     } catch (error) {
         console.error('Error fetching users:', error);

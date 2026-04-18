@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import pool from '../config/dataBase/postgreSQL';
 import type { RequestWithUser } from '../types';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 export const postOrders = async (req: RequestWithUser, res: Response): Promise<void> => {
     // Додали email, username та password, які можуть прийти від неавторизованого юзера
@@ -20,6 +21,7 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
                 res.status(400).json({ error: 'Для замовлення без авторизації потрібні email, username та password' });
                 return;
             }
+            const userRegId = uuidv4();
 
             // Перевіряємо, чи не зайнятий email
             const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -34,8 +36,8 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
 
             // Створюємо нового користувача (роль за замовчуванням 'user')
             const newUser = await pool.query(
-                'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id',
-                [username, email, hashedPassword, 'user'],
+                'INSERT INTO users (id, username, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+                [userRegId, username, email, hashedPassword, 'user'],
             );
 
             userId = newUser.rows[0].id;

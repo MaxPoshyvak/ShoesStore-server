@@ -27,7 +27,7 @@ export const createPayment = async (req: RequestWithUser, res: Response) => {
         const order = getOrderFromDB.rows[0];
 
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(404).json({ message: 'Order not found', userId });
         }
 
         const checkPaymentStatus = order.payment_status;
@@ -57,7 +57,7 @@ export const createPayment = async (req: RequestWithUser, res: Response) => {
                             name: `Замовлення #${orderId} у ShoesStore`,
                         },
                         // Stripe вимагає суму в копійках!
-                        unit_amount: Math.round(order.total_amount),
+                        unit_amount: Math.round(order.total_amount * 100),
                     },
                     quantity: 1, // Ми передаємо все замовлення як 1 пункт
                 },
