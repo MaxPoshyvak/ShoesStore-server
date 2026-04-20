@@ -150,3 +150,14 @@ export const webhookPayment = async (req: Request, res: Response) => {
     // і буде спамити тебе цим запитом кожні кілька годин.
     res.status(200).json({ received: true });
 };
+
+export const getPayments = async (req: RequestWithUser, res: Response) => {
+    try {
+        const payments = await pool.query('SELECT * FROM payments');
+
+        res.status(200).json(payments.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching payments' });
+    }
+};

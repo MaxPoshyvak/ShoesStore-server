@@ -219,3 +219,71 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
         res.status(500).json({ error: 'Внутрішня помилка сервера' });
     }
 };
+
+export const getOrderByUserId = async (req: RequestWithUser, res: Response): Promise<void> => {
+    const userId = req.params.userId;
+
+    if (!userId) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    try {
+        const ordersResult = await pool.query(
+            `
+            SELECT 
+                o.id, 
+                o.total_amount, 
+                o.status, 
+                o.payment_method, 
+                o.payment_status, 
+                o.shipping_address, 
+                o.customer_notes,
+                o.created_at
+            FROM orders o
+            WHERE o.user_id = $1
+            ORDER BY o.created_at DESC
+        `,
+            [userId],
+        );
+
+        const orders = ordersResult.rows;
+
+        if (orders.length === 0) {
+            res.status(200).json([]);
+            return;
+        }
+
+        const orderIds = orders.map((order) => order.id);
+
+        const itemsResult = await pool.query(
+            `
+            SELECT 
+                oi.order_id,         
+                oi.good_id, 
+                oi.quantity, 
+                oi.price_at_purchase, 
+                g.name, 
+                g.main_image_url
+            FROM order_items oi
+            JOIN goods g ON oi.good_id = g.id
+            WHERE oi.order_id = ANY($1)
+        `,
+            [orderIds],
+        );
+
+        const allItems = itemsResult.rows;
+
+        const fullOrders = orders.map((order) => {
+            return {
+                ...order,
+                items: allItems.filter((item) => item.order_id === order.id),
+            };
+        });
+
+        res.status(200).json(fullOrders);
+    } catch (error) {
+        console.error('Помилка при отриманні замовлень користувача:', error);
+        res.status(500).json({ error: 'Внутрішня помилка сервера' });
+    }
+};

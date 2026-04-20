@@ -26,12 +26,22 @@ export const addFeedbacks = async (req: RequestWithUser, res: Response) => {
     }
 
     try {
-        const goodExist = await pool.query('SELECT id FROM goods WHERE id = $1', [goodId]);
+        const goodExist = await pool.query('SELECT id, name FROM goods WHERE id = $1', [goodId]);
         if (goodExist.rowCount === 0) {
             return res.status(404).json({ message: 'Good not found' });
         }
 
-        const feedback = new Feedback({ comment, rating, goodId, userId });
+        const user = await pool.query('SELECT username, email FROM users WHERE id = $1', [userId]);
+
+        const feedback = new Feedback({
+            comment,
+            rating,
+            goodName: goodExist.rows[0].name,
+            goodId,
+            userId,
+            username: user.rows[0].username,
+            userEmail: user.rows[0].email,
+        });
         await feedback.save();
         res.status(201).json({ message: 'Feedback added successfully', feedback });
     } catch (error) {
