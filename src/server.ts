@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import app from './app';
 import Database from './config/dataBase/mongoDb';
+import './bot/index';
 
 const PORT = process.env.PORT || 3000;
 

@@ -4,6 +4,7 @@ import pool from '../config/dataBase/postgreSQL';
 import Stripe = require('stripe');
 
 import type { RequestWithUser } from '../types';
+import { sendOrderStatusToTelegram } from '../bot/services/notify.service';
 
 const stripe = new (Stripe as any)(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2023-10-16',
@@ -135,6 +136,10 @@ export const webhookPayment = async (req: Request, res: Response) => {
                      WHERE id = $1`,
                     [orderId],
                 );
+
+                const user = await pool.query(`SELECT email, telegram_chat_id FROM users `);
+
+                await sendOrderStatusToTelegram(user.rows[0].telegram_chat_id, orderId, 'Paid');
 
                 console.log(`✅ Замовлення #${orderId} успішно оплачено! Транзакція: ${transactionId}`);
             } catch (dbError) {
