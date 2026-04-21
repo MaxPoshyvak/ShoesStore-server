@@ -137,9 +137,22 @@ export const webhookPayment = async (req: Request, res: Response) => {
                     [orderId],
                 );
 
-                const user = await pool.query(`SELECT email, telegram_chat_id FROM users `);
+                const userResult = await pool.query(
+                    `SELECT u.telegram_chat_id 
+     FROM users u 
+     JOIN orders o ON u.id = o.user_id 
+     WHERE o.id = $1`,
+                    [orderId],
+                );
 
-                await sendOrderStatusToTelegram(user.rows[0].telegram_chat_id, orderId, 'Paid');
+                const chatId = userResult.rows[0]?.telegram_chat_id;
+
+                if (chatId) {
+                    await sendOrderStatusToTelegram(chatId, orderId, 'paid'); // Використовуй 'paid' з маленької, щоб спрацював твій switch/case
+                    console.log(`✉️ Повідомлення успішно відправлено в Telegram!`);
+                } else {
+                    console.log(`ℹ️ У користувача для замовлення #${orderId} не підключений Telegram.`);
+                }
 
                 console.log(`✅ Замовлення #${orderId} успішно оплачено! Транзакція: ${transactionId}`);
             } catch (dbError) {
