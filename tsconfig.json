@@ -9,5 +9,6 @@
         "allowSyntheticDefaultImports": true,
         "moduleResolution": "node",
         "skipLibCheck": true
-    }
+    },
+    "exclude": ["node_modules", "scripts", "**/*.spec.ts", "parseGoods.js"]
 }
