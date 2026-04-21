@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import { setupStartCommand } from './commands/startCommand';
+import { setupTestCommand } from './commands/testCommand';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ if (token) {
     // Тут ми будемо підключати наші команди (наприклад, /start)
     // import { setupStartCommand } from './commands/startCommand';
     setupStartCommand(bot);
+    setupTestCommand(bot);
 } else {
     console.warn('⚠️ TELEGRAM_BOT_TOKEN не знайдено в .env. Бот не запущений.');
 }
