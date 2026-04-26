@@ -11,9 +11,13 @@ const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 
 export const io = new Server(server, {
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    transports: ['websocket', 'polling'],
     cors: {
-        origin: ['http://localhost:3000', 'https://shoes-store-khaki.vercel.app'], // URL вашого фронтенду
+        origin: ['http://localhost:3000', 'https://shoes-store-khaki.vercel.app'].filter(Boolean), // URL вашого фронтенду
         methods: ['GET', 'POST'],
+        credentials: true,
     },
 });
 
