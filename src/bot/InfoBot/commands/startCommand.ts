@@ -1,5 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
-import pool from '../../config/dataBase/postgreSQL';
+import pool from '../../../config/dataBase/postgreSQL';
 
 export function setupStartCommand(bot: TelegramBot) {
     if (!bot) {

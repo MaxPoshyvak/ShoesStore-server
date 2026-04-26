@@ -4,7 +4,7 @@ import pool from '../config/dataBase/postgreSQL';
 import Stripe = require('stripe');
 
 import type { RequestWithUser } from '../types';
-import { sendOrderStatusToTelegram } from '../bot/services/notify.service';
+import { sendOrderStatusToTelegram } from '../bot/InfoBot/services/notify.service';
 
 const stripe = new (Stripe as any)(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2023-10-16',
