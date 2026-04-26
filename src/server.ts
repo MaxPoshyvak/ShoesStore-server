@@ -12,7 +12,7 @@ const server = http.createServer(app);
 
 export const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:3000', // URL вашого фронтенду
+        origin: ['http://localhost:3000', 'https://shoes-store-khaki.vercel.app'], // URL вашого фронтенду
         methods: ['GET', 'POST'],
     },
 });
