@@ -40,8 +40,6 @@ export const userLogin = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'JWT_SECRET is not defined in environment variables' });
     }
 
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '12h' });
-
     try {
         const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
@@ -54,6 +52,10 @@ export const userLogin = async (req: Request, res: Response) => {
         if (!validPassword) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
+
+        const token = jwt.sign({ id: user.rows[0].id, email: user.rows[0].email }, process.env.JWT_SECRET, {
+            expiresIn: '12h',
+        });
 
         res.status(200).json({ message: 'Login successful', token, user: user.rows[0] });
     } catch (error) {
