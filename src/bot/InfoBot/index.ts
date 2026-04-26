@@ -5,7 +5,7 @@ import { setupTestCommand } from './commands/testCommand';
 
 dotenv.config();
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
+const token = process.env.TELEGRAM_INFO_BOT_TOKEN;
 
 let bot: TelegramBot | null = null;
 
