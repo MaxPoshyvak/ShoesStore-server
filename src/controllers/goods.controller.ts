@@ -26,7 +26,7 @@ const checkAndNotifyWaitlist = async (goodId: string, newStock: number) => {
 export const getGoods = async (req: Request, res: Response) => {
     try {
         const result = await pool.query('SELECT * FROM goods ORDER BY id ASC');
-        res.json(result.rows);
+        res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching goods:', error);
         res.status(500).json({ message: 'Internal server error' });
