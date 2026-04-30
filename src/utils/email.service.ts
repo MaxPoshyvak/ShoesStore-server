@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import pool from '../config/dataBase/postgreSQL';
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: 'smtp.gmail.com',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
