@@ -125,7 +125,9 @@ export const updateGood = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Good not found' });
         }
 
-        await checkAndNotifyWaitlist(id, stock_quantity);
+        checkAndNotifyWaitlist(id, stock_quantity).catch((err) => {
+            console.error('Помилка фонової розсилки листів:', err);
+        });
 
         res.status(200).json({ message: 'Goods updated', good: result.rows[0] });
     } catch (error) {
@@ -153,7 +155,9 @@ export const updateGoodStock = async (req: Request, res: Response) => {
         }
 
         // Знову використовуємо допоміжну функцію
-        await checkAndNotifyWaitlist(id, newStock);
+        checkAndNotifyWaitlist(id, newStock).catch((err) => {
+            console.error('Помилка фонової розсилки листів:', err);
+        });
 
         res.status(200).json({ message: 'Good stock updated', good: result.rows[0] });
     } catch (error) {
