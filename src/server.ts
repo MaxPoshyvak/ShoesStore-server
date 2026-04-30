@@ -1,13 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 import app from './app';
 import Database from './config/dataBase/mongoDb';
 import './bot/SupportBot/index';
 import { Server } from 'socket.io';
 import http from 'http';
-import dns from 'dns';
+
 // Змушуємо Node.js використовувати IPv4 замість IPv6
-dns.setDefaultResultOrder('ipv4first');
+
 
 const PORT = process.env.PORT || 3000;
 
