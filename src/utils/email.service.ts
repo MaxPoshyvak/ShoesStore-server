@@ -2,15 +2,21 @@ import nodemailer from 'nodemailer';
 import pool from '../config/dataBase/postgreSQL';
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', 
-    port: 587,            
-    secure: false,
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+    // Додаємо жорсткі таймаути та пул
+    pool: true,
+    maxConnections: 1,
+    connectionTimeout: 10000, // 10 секунд на підключення
+    greetingTimeout: 10000,   // 10 секунд на привітання сервера
+    socketTimeout: 15000,     // 15 секунд на всю операцію
     tls: {
-        rejectUnauthorized: false 
+        rejectUnauthorized: false
     }
 });
 
