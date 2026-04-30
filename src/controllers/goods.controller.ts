@@ -125,7 +125,7 @@ export const updateGood = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Good not found' });
         }
 
-        checkAndNotifyWaitlist(id, newStock).catch((err) => {
+        checkAndNotifyWaitlist(id, stock_quantity).catch((err) => {
             console.error('Помилка фонової розсилки листів:', err);
         });
 
