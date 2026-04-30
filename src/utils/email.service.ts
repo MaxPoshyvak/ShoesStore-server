@@ -1,13 +1,8 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import pool from '../config/dataBase/postgreSQL';
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+// Ініціалізуємо клієнт Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendRestockEmail = async (emails: string[], goodId: number | string) => {
     if (!emails || emails.length === 0) return;
@@ -68,15 +63,24 @@ export const sendRestockEmail = async (emails: string[], goodId: number | string
     </div>
 `;
 
-        await transporter.sendMail({
-            from: `"ShoesStore" <${process.env.EMAIL_USER}>`,
-            bcc: emails, // Важливо! bcc приховає email-и користувачів один від одного
+        const { data, error } = await resend.emails.send({
+            from: 'ShoesStore <info@slickstore.store>',
+
+            to: 'info@slickstore.store',
+
+            bcc: emails,
+
             subject: `🔥 ${good.name} знову в наявності!`,
             html: htmlContent,
         });
 
-        console.log(`✅ Сповіщення про наявність успішно відправлено ${emails.length} користувачам.`);
+        if (error) {
+            console.error('Помилка від API Resend:', error);
+            return;
+        }
+
+        console.log(`✅ Сповіщення успішно відправлено! ID розсилки: ${data?.id}`);
     } catch (error) {
-        console.error('Помилка при відправці листів очікування:', error);
+        console.error('Критична помилка при відправці листів:', error);
     }
 };
