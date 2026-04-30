@@ -10,7 +10,7 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), web
 app.use(express.json());
 app.use(
     cors({
-        origin: ['http://localhost:3000', 'https://shoes-store-khaki.vercel.app'],
+        origin: ['http://localhost:3000', 'https://shoes-store-khaki.vercel.app', 'https://www.slickstore.store'],
         credentials: true,
     }),
 );
