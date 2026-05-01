@@ -94,7 +94,8 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
                            'price', g.price, 
                            'sizes', g.sizes, 
                            'image', g.main_image_url,
-                           'quantity', oi.quantity
+                           'quantity', oi.quantity,
+                            'size', oi.size
                        )) as items
                 FROM orders o
                 LEFT JOIN order_items oi ON o.id = oi.order_id

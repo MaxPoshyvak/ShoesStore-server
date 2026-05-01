@@ -46,20 +46,36 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
         // --- 2. СТАНДАРТНА ЛОГІКА СТВОРЕННЯ ЗАМОВЛЕННЯ ---
         // Тепер у нас 100% є userId (або старий, або щойно створений)
 
-        const itemsFromDB = await pool.query('SELECT id, name, price, stock_quantity FROM goods WHERE id = ANY($1)', [
-            items.map((item: any) => item.good_id),
-        ]);
-
-        if (itemsFromDB.rows.length !== items.length) {
-            res.status(400).json({ error: 'Один або декілька товарів не знайдено в базі' });
-            return;
-        }
+        const itemsFromDB = await pool.query(
+            'SELECT id, name, price, stock_quantity, sizes FROM goods WHERE id = ANY($1)',
+            [items.map((item: any) => item.good_id)],
+        );
 
         const orderItems = items.map((reqItem: any) => {
-            const dbItem = itemsFromDB.rows.find((row) => row.id === reqItem.good_id);
+            // 1. Приводимо id до рядків для безпечного порівняння
+            const dbItem = itemsFromDB.rows.find((row) => String(row.id) === String(reqItem.good_id));
+
+            // 2. СПОЧАТКУ перевіряємо чи є товар, а вже потім дістаємо його властивості
+            if (!dbItem) {
+                // Викидаємо спеціальну помилку (додамо маркер 'VALIDATION_ERROR', щоб відловити її в catch)
+                const err = new Error(`Товар з ID ${reqItem.good_id} не знайдено`);
+                err.name = 'VALIDATION_ERROR';
+                throw err;
+            }
+
+            const availableSizes = (dbItem.sizes || []).map(String);
+            const requestedSize = String(reqItem.size);
+
+            if (!availableSizes.includes(requestedSize)) {
+                const err = new Error(`Розмір ${reqItem.size} недоступний для товару "${dbItem.name}"`);
+                err.name = 'VALIDATION_ERROR';
+                throw err;
+            }
+
             return {
                 good_id: dbItem.id,
                 price: dbItem.price,
+                size: reqItem.size,
                 requested_quantity: reqItem.quantity,
                 stock_quantity: dbItem.stock_quantity,
             };
@@ -87,8 +103,8 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
         // Додаємо товари в order_items
         const setOrderItems = orderItems.map((item: any) => {
             return pool.query(
-                'INSERT INTO order_items (order_id, good_id, quantity, price_at_purchase) VALUES ($1, $2, $3, $4)',
-                [newOrderId, item.good_id, item.requested_quantity, item.price],
+                'INSERT INTO order_items (order_id, good_id, quantity, price_at_purchase, size) VALUES ($1, $2, $3, $4, $5)',
+                [newOrderId, item.good_id, item.requested_quantity, item.price, item.size as string],
             );
         });
         await Promise.all(setOrderItems);
@@ -103,8 +119,15 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
         await Promise.all(updateStockQueries);
 
         res.status(201).json({ message: 'Замовлення успішно створено', order: result.rows[0] });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error creating order:', error);
+
+        // 4. ТЕПЕР МИ ПРАВИЛЬНО ОБРОБЛЯЄМО ПОМИЛКИ ВАЛІДАЦІЇ
+        if (error instanceof Error && error.name === 'VALIDATION_ERROR') {
+            res.status(400).json({ error: error.message });
+            return; // Обов'язково робимо return
+        }
+
         res.status(500).json({ error: 'Внутрішня помилка сервера' });
     }
 };
@@ -144,6 +167,7 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
                 oi.good_id, 
                 oi.quantity, 
                 oi.price_at_purchase, 
+                oi.size,
                 g.name, 
                 g.main_image_url
             FROM order_items oi
@@ -199,6 +223,7 @@ export const getOrderById = async (req: Request, res: Response): Promise<void> =
                 oi.good_id, 
                 oi.quantity, 
                 oi.price_at_purchase, 
+                oi.size,
                 g.name, 
                 g.main_image_url
             FROM order_items oi
