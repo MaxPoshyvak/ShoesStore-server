@@ -107,7 +107,7 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
         // 1. Запускаємо ПАРАЛЕЛЬНО запити до PostgreSQL
         const [userResult, ordersResult] = await Promise.all([
             // Витягуємо юзера (робимо username as name для фронтенду)
-            pool.query('SELECT id, username, email, created_at FROM users WHERE id = $1', [userId]),
+            pool.query('SELECT id, username, email, phone, delivery_address FROM users WHERE id = $1', [userId]),
 
             // Витягуємо замовлення з таблиці goods (використовуємо g.name та g.image_url)
             pool.query(
@@ -151,6 +151,8 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
         // 3. Збираємо фінальний об'єкт профілю
         const finalProfile = {
             ...userResult.rows[0], // id, name, email, created_at
+            phone: userResult.rows[0].phone,
+            delivery_address: userResult.rows[0].delivery_address,
             orders: ordersResult.rows, // масив замовлень
             reviews: reviews, // масив відгуків з Mongo
         };
@@ -168,7 +170,7 @@ export const editUser = async (req: RequestWithUser, res: Response) => {
 
     // 2. Дістаємо дані, які юзер МОЖЛИВО прислав
     // Якщо чогось немає, воно буде undefined
-    const { username, email } = req.body;
+    const { username, email, phone, delivery_address } = req.body;
 
     try {
         // 3. Робимо магічний SQL запит
@@ -177,10 +179,12 @@ export const editUser = async (req: RequestWithUser, res: Response) => {
              SET 
                 username = COALESCE($1, username), 
                 email = COALESCE($2, email),
+                phone = COALESCE($3, phone),
+                delivery_address = COALESCE($4, delivery_address),
                 updated_at = NOW()
-             WHERE id = $3 
-             RETURNING id, username, email`, // Повертаємо оновлені дані (БЕЗ ПАРОЛЯ!)
-            [username, email, userId],
+             WHERE id = $5 
+             RETURNING id, username, email, phone, delivery_address`,
+            [username, email, phone, delivery_address, userId],
         );
 
         if (updatedUser.rows.length === 0) {
