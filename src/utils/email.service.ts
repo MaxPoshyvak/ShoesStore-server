@@ -84,3 +84,89 @@ export const sendRestockEmail = async (emails: string[], goodId: number | string
         console.error('Критична помилка при відправці листів:', error);
     }
 };
+
+export const sendVerificationEmail = async (email: string, token: string) => {
+    try {
+        const verificationUrl = `${process.env.CLIENT_URL}/verify?token=${token}`;
+
+        const htmlContent = `
+    <div style="background-color: #f3f4f6; padding: 50px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+            
+            <!-- HEADER -->
+            <div style="background-color: #000000; padding: 35px 24px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase;">
+                    ShoesStore
+                </h1>
+            </div>
+
+            <!-- BODY -->
+            <div style="padding: 40px 30px;">
+                <h2 style="color: #111827; font-size: 24px; font-weight: 800; margin-top: 0; text-align: center; text-transform: uppercase;">
+                    You're almost there! ⚡
+                </h2>
+                <p style="color: #4b5563; font-size: 16px; line-height: 1.6; text-align: center; margin-bottom: 35px;">
+                    Thanks for signing up. To complete your account setup and start shopping the latest drops, please verify your email address.
+                </p>
+
+                <!-- CODE BLOCK (For copying) -->
+                <div style="background-color: #f9fafb; border: 2px dashed #d1d5db; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 30px;">
+                    <p style="margin: 0 0 10px 0; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">
+                        Your verification code
+                    </p>
+                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 42px; font-weight: 800; color: #000000; letter-spacing: 8px;">
+                        ${token}
+                    </div>
+                </div>
+
+                <!-- DIVIDER -->
+                <div style="text-align: center; margin-bottom: 30px; position: relative;">
+                    <div style="position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid #e5e7eb; z-index: 1;"></div>
+                    <span style="position: relative; background-color: #ffffff; padding: 0 15px; color: #9ca3af; font-size: 14px; font-weight: 600; text-transform: uppercase; z-index: 2;">
+                        Or
+                    </span>
+                </div>
+
+                <!-- BUTTON (For quick access) -->
+                <div style="text-align: center;">
+                    <a href="${verificationUrl}" style="background-color: #000000; color: #ffffff; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; display: inline-block; text-transform: uppercase; letter-spacing: 1px; transition: background-color 0.3s;">
+                        Verify Automatically
+                    </a>
+                </div>
+            </div>
+            
+            <!-- FOOTER -->
+            <div style="background-color: #f9fafb; padding: 30px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 10px 0;">
+                    If you didn't create an account at ShoesStore, you can safely ignore this email.
+                </p>
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    &copy; ${new Date().getFullYear()} ShoesStore. All rights reserved.
+                </p>
+            </div>
+
+        </div>
+    </div>
+`;
+
+        const { data, error } = await resend.emails.send({
+            from: 'ShoesStore <info@slickstore.store>',
+
+            to: 'info@slickstore.store',
+
+            bcc: email,
+
+            subject: 'Verify Your Email',
+            html: htmlContent,
+        });
+
+        if (error) {
+            console.error('Помилка від API Resend:', error);
+            return;
+        }
+
+        console.log(`✅ Verification email sent successfully! Email ID: ${data?.id}`);
+    } catch (error) {
+        console.error('Critical error while sending verification email:', error);
+    }
+};

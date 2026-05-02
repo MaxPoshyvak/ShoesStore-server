@@ -5,11 +5,24 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { RequestWithUser } from '../types';
 import Feedback from '../models/Feedback';
+import { sendVerificationEmail } from '../utils/email.service';
+import crypto from 'crypto';
+
+function generateCode(length = 4) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const bytes = crypto.randomBytes(length);
+
+    return Array.from(bytes)
+        .map((b) => chars[b % chars.length])
+        .join('');
+}
 
 export const userRegistration = async (req: Request, res: Response) => {
     const { username, email, password } = req.body;
 
     const userId = uuidv4();
+    const verificationToken = generateCode();
+    const tokenExpiration = new Date(Date.now() + 12 * 60 * 60 * 1000);
 
     if (!process.env.JWT_SECRET) {
         return res.status(500).json({ message: 'JWT_SECRET is not defined in environment variables' });
@@ -25,10 +38,14 @@ export const userRegistration = async (req: Request, res: Response) => {
         }
 
         const newUser = await pool.query(
-            'INSERT INTO users (id, username, email, password) VALUES ($1, $2, $3, $4) RETURNING *',
-            [userId, username, email, hashedPassword],
+            'INSERT INTO users (id, username, email, password, verification_token, token_expires_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [userId, username, email, hashedPassword, verificationToken, tokenExpiration],
         );
-        res.status(201).json({ message: 'User registered successfully', user: newUser.rows[0] });
+        await sendVerificationEmail(email, verificationToken);
+        res.status(201).json({
+            message: 'User registered successfully. Please check your email for verification.',
+            user: newUser.rows[0],
+        });
     } catch (error) {
         console.error('Error during user registration:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -44,6 +61,13 @@ export const userLogin = async (req: Request, res: Response) => {
 
     try {
         const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+        if (!user.rows[0].email_verified) {
+            return res.status(400).json({
+                message: 'Please verify your email first',
+                email: user.rows[0].email,
+            });
+        }
 
         if (!user || user.rows.length === 0) {
             return res.status(400).json({ message: 'Invalid email or password' });
@@ -170,5 +194,34 @@ export const editUser = async (req: RequestWithUser, res: Response) => {
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const verifyEmail = async (req: RequestWithUser, res: Response) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json({ message: 'Verification token is required' });
+    }
+
+    try {
+        const checkToken = await pool.query(
+            'SELECT id FROM users WHERE verification_token = $1 AND token_expires_at > NOW()',
+            [token],
+        );
+
+        if (checkToken.rows.length === 0) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
+
+        await pool.query(
+            'UPDATE users SET email_verified = true, verification_token = null, token_expires_at = null WHERE id = $1',
+            [checkToken.rows[0].id],
+        );
+
+        res.status(200).json({ message: 'Email verified successfully', success: true });
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        res.status(500).json({ message: 'Server error', success: false });
     }
 };
