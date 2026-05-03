@@ -230,17 +230,18 @@ export const verifyEmail = async (req: RequestWithUser, res: Response) => {
     }
 };
 
-export const resendVerificationEmail = async (req: RequestWithUser, res: Response) => {
-    const userId = req.user?.id;
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+    const { email } = req.body;
 
     try {
-        const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+        const userResult = await pool.query('SELECT email, id FROM users WHERE email = $1', [email]);
 
         if (userResult.rows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const email = userResult.rows[0].email;
+        const userEmail = userResult.rows[0].email;
+        const userId = userResult.rows[0].id;
         const newToken = generateCode();
         const tokenExpiration = new Date(Date.now() + 12 * 60 * 60 * 1000);
 
@@ -250,7 +251,7 @@ export const resendVerificationEmail = async (req: RequestWithUser, res: Respons
             userId,
         ]);
 
-        await sendVerificationEmail(email, newToken);
+        await sendVerificationEmail(userEmail, newToken);
 
         res.status(200).json({ message: 'Verification email resent successfully' });
     } catch (error) {
