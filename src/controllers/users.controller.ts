@@ -229,3 +229,32 @@ export const verifyEmail = async (req: RequestWithUser, res: Response) => {
         res.status(500).json({ message: 'Server error', success: false });
     }
 };
+
+export const resendVerificationEmail = async (req: RequestWithUser, res: Response) => {
+    const userId = req.user?.id;
+
+    try {
+        const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const email = userResult.rows[0].email;
+        const newToken = generateCode();
+        const tokenExpiration = new Date(Date.now() + 12 * 60 * 60 * 1000);
+
+        await pool.query('UPDATE users SET verification_token = $1, token_expires_at = $2 WHERE id = $3', [
+            newToken,
+            tokenExpiration,
+            userId,
+        ]);
+
+        await sendVerificationEmail(email, newToken);
+
+        res.status(200).json({ message: 'Verification email resent successfully' });
+    } catch (error) {
+        console.error('Error resending verification email:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
