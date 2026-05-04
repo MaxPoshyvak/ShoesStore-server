@@ -7,6 +7,7 @@ import { RequestWithUser } from '../types';
 import Feedback from '../models/Feedback';
 import { sendVerificationEmail } from '../utils/email.service';
 import crypto from 'crypto';
+import Favorites from '../models/Favorites';
 
 function generateCode(length = 4) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -148,6 +149,22 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
             date: feedback.createdAt,
         }));
 
+        const favoritesResult = await Favorites.find({ userId: userId }).exec();
+
+        const favorites = favoritesResult.map((favorite) => ({
+            id: favorite._id,
+            goodId: favorite.goodId,
+            goodName: favorite.goodName,
+            goodPrice: favorite.goodPrice,
+            goodImage: favorite.goodImage,
+            oldPrice: favorite.oldPrice,
+            category: favorite.category,
+            is_new: favorite.is_new,
+            stock_quantity: favorite.stock_quantity,
+            sizes: favorite.sizes,
+            favoritedAt: favorite.favoritedAt,
+        }));
+
         // 3. Збираємо фінальний об'єкт профілю
         const finalProfile = {
             ...userResult.rows[0], // id, name, email, created_at
@@ -155,6 +172,7 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
             delivery_address: userResult.rows[0].delivery_address,
             orders: ordersResult.rows, // масив замовлень
             reviews: reviews, // масив відгуків з Mongo
+            favorites: favorites,
         };
 
         res.status(200).json({ user: finalProfile });

@@ -8,6 +8,7 @@ import searchInfoRoutes from './searchInfo.routes';
 import feedbacksRoutes from './feedbacks.routes';
 import waitlistRoutes from './waitlist.routes';
 import telegramRoutes from './telegram.routes';
+import favoritesRoutes from './favorites.routes';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use('/telegram', telegramRoutes);
 router.use('/history', historyRoutes);
 router.use('/search-info', searchInfoRoutes);
 router.use('/feedbacks', feedbacksRoutes);
+router.use('/favorites', favoritesRoutes);
 
 export default router;

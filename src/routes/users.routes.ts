@@ -18,7 +18,7 @@ router.post('/registration', validateUserRegistration, userRegistration);
 router.post('/login', validateUserLogin, userLogin);
 
 router.post('/verify-email', verifyEmail);
-router.post('/resend-verification-email', authMiddleware, resendVerificationEmail);
+router.post('/resend-verification-email', resendVerificationEmail);
 
 router.get('/me', authMiddleware, getMe);
 router.patch('/edit', authMiddleware, editUser);
