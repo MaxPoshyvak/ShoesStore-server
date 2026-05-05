@@ -10,9 +10,10 @@ import {
 import { validateGoodCreation } from '../middlewares/goodsValidation';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { adminMiddleware } from '../middlewares/adminMiddleware';
+import { optionalAuthMiddleware } from '../middlewares/optionalAuthMiddleware';
 const router = Router();
 
-router.get('/', getGoods);
+router.get('/', optionalAuthMiddleware, getGoods);
 router.get('/:id', getGoodById);
 router.post('/', validateGoodCreation, authMiddleware, adminMiddleware, postGoods);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteGood);
