@@ -16,7 +16,13 @@ export const optionalAuthMiddleware = async (req: AuthRequest, res: Response, ne
     const authHeader = req.headers.authorization;
 
     // Якщо токена немає взагалі — просто йдемо далі (це гість)
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (
+        !authHeader ||
+        !authHeader.startsWith('Bearer ') ||
+        authHeader === 'Bearer null' ||
+        authHeader === 'Bearer undefined' ||
+        authHeader === 'Bearer '
+    ) {
         return next();
     }
 
