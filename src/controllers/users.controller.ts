@@ -146,6 +146,7 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
             text: feedback.comment,
             rating: feedback.rating,
             productName: feedback.goodName,
+            goodId: feedback.goodId,
             date: feedback.createdAt,
         }));
 
