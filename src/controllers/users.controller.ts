@@ -8,6 +8,8 @@ import Feedback from '../models/Feedback';
 import { sendVerificationEmail } from '../utils/email.service';
 import crypto from 'crypto';
 import Favorites from '../models/Favorites';
+import Activity from '../models/Activity';
+import { logActivity } from '../utils/activityLogger';
 
 function generateCode(length = 4) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -42,6 +44,13 @@ export const userRegistration = async (req: Request, res: Response) => {
             'INSERT INTO users (id, username, email, password, verification_token, token_expires_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [userId, username, email, hashedPassword, verificationToken, tokenExpiration],
         );
+
+        logActivity({
+            userId: newUser.rows[0].id,
+            category: 'Register',
+            actionData: email,
+        });
+
         await sendVerificationEmail(email, verificationToken);
         res.status(201).json({
             message: 'User registered successfully. Please check your email for verification.',

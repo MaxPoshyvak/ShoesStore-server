@@ -5,6 +5,7 @@ import Stripe = require('stripe');
 
 import type { RequestWithUser } from '../types';
 import { sendOrderStatusToTelegram } from '../bot/InfoBot/services/notify.service';
+import { logActivity } from '../utils/activityLogger';
 
 const stripe = new (Stripe as any)(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2023-10-16',
@@ -146,6 +147,13 @@ export const webhookPayment = async (req: Request, res: Response) => {
                 );
 
                 const chatId = userResult.rows[0]?.telegram_chat_id;
+
+                logActivity({
+                    userId: orderId,
+                    category: 'Order',
+                    actionData: orderId,
+                    actionAdditionalData: 'paid',
+                });
 
                 if (chatId) {
                     await sendOrderStatusToTelegram(chatId, orderId, 'paid'); // Використовуй 'paid' з маленької, щоб спрацював твій switch/case

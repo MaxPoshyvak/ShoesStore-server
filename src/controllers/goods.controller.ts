@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/dataBase/postgreSQL';
 import { sendRestockEmail } from '../utils/email.service';
+import { logActivity } from '../utils/activityLogger';
 
 const checkAndNotifyWaitlist = async (goodId: string, newStock: number) => {
     if (newStock > 0) {
@@ -124,6 +125,13 @@ export const updateGood = async (req: Request, res: Response) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Good not found' });
         }
+        if (result.rows[0].stock_quantity < 1) {
+            logActivity({
+                userId: id,
+                category: 'OutOfStock',
+                actionData: result.rows[0].name,
+            });
+        }
 
         checkAndNotifyWaitlist(id, stock_quantity).catch((err) => {
             console.error('Помилка фонової розсилки листів:', err);
@@ -152,6 +160,14 @@ export const updateGoodStock = async (req: Request, res: Response) => {
 
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Good not found' });
+        }
+
+        if (newStock < 1) {
+            logActivity({
+                userId: id,
+                category: 'OutOfStock',
+                actionData: result.rows[0].name,
+            });
         }
 
         // Знову використовуємо допоміжну функцію

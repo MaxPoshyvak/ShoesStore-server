@@ -3,6 +3,7 @@ import pool from '../config/dataBase/postgreSQL';
 import type { RequestWithUser } from '../types';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { logActivity } from '../utils/activityLogger';
 
 export const postOrders = async (req: RequestWithUser, res: Response): Promise<void> => {
     // Додали email, username та password, які можуть прийти від неавторизованого юзера
@@ -39,6 +40,12 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
                 'INSERT INTO users (id, username, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id',
                 [userRegId, username, email, hashedPassword, 'user'],
             );
+
+            logActivity({
+                userId: userRegId,
+                category: 'Register',
+                actionData: email,
+            });
 
             userId = newUser.rows[0].id;
         }
@@ -111,12 +118,30 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
 
         // Віднімаємо залишки на складі
         const updateStockQueries = orderItems.map((item: any) => {
-            return pool.query('UPDATE goods SET stock_quantity = stock_quantity - $1 WHERE id = $2', [
-                item.requested_quantity,
-                item.good_id,
-            ]);
+            const updateStockQuery = pool.query(
+                'UPDATE goods SET stock_quantity = stock_quantity - $1 WHERE id = $2 ',
+                [item.requested_quantity, item.good_id],
+            );
+
+            if (item.stock_quantity - item.requested_quantity === 0) {
+                logActivity({
+                    userId,
+                    category: 'OutOfStock',
+                    actionData: item.good_id,
+                    actionAdditionalData: 'out_of_stock',
+                });
+            }
+
+            return updateStockQuery;
         });
         await Promise.all(updateStockQueries);
+
+        logActivity({
+            userId,
+            category: 'Order',
+            actionData: newOrderId,
+            actionAdditionalData: 'placed',
+        });
 
         res.status(201).json({ message: 'Замовлення успішно створено', order: result.rows[0] });
     } catch (error: unknown) {

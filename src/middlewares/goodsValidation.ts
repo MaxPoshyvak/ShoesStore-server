@@ -6,6 +6,6 @@ export const validateGoodCreation = async (req: Request, res: Response, next: Ne
         await goodCreationSchema.validate(req.body);
         next();
     } catch (error: any) {
-        res.status(400).json({ message: error.message });
+        res.status(400).json({ message: error.message }); 
     }
 };
