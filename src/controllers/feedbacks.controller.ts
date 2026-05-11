@@ -2,6 +2,7 @@ import { Response } from 'express';
 import type { RequestWithUser } from '../types';
 import Feedback from '../models/Feedback';
 import pool from '../config/dataBase/postgreSQL';
+import { logActivity } from '../utils/activityLogger';
 
 export const getFeedbacks = async (req: RequestWithUser, res: Response) => {
     try {
@@ -16,6 +17,10 @@ export const getFeedbacks = async (req: RequestWithUser, res: Response) => {
 export const addFeedbacks = async (req: RequestWithUser, res: Response) => {
     const { comment, rating, goodId } = req.body;
     const userId = req.user?.id;
+
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     if (!comment || !rating || !goodId) {
         return res.status(400).json({ message: 'All fields are required' });
@@ -43,6 +48,14 @@ export const addFeedbacks = async (req: RequestWithUser, res: Response) => {
             userEmail: user.rows[0].email,
         });
         await feedback.save();
+
+        logActivity({
+            userId,
+            category: 'Feedback',
+            actionData: rating.toString(),
+            actionAdditionalData: goodExist.rows[0].name,
+        });
+
         res.status(201).json({ message: 'Feedback added successfully', feedback });
     } catch (error) {
         console.error('Error adding feedback:', error);
