@@ -13,15 +13,33 @@ This folder contains **project documentation** and the **Swagger (OpenAPI) speci
 When the server is running, open:
 
 - `GET /docs` – interactive Swagger UI
-- `GET /openapi.yaml` – raw OpenAPI YAML
+- `GET /openapi.yaml` – raw OpenAPI YAML (main entry point)
 
-## OpenAPI spec location
+## OpenAPI spec structure
 
-- `documentation/swagger/openapi.yaml`
+The spec is split into multiple files for maintainability:
+
+```
+documentation/swagger/
+├── openapi.yaml          # Main entry point (info, tags, refs)
+├── schemas.yaml          # Shared component schemas
+└── paths/
+    ├── users.yaml        # User registration, login, profile
+    ├── goods.yaml        # Product catalog CRUD
+    ├── orders.yaml       # Order management
+    ├── payments.yaml     # Stripe payments & webhook
+    ├── favorites.yaml    # User favorites
+    ├── history.yaml      # Viewing history
+    ├── search-info.yaml  # Search query history
+    ├── feedbacks.yaml    # Product reviews
+    ├── waitlist.yaml     # Out-of-stock waitlist
+    ├── telegram.yaml     # Telegram bot integration
+    └── statistic.yaml    # Dashboard statistics & activity
+```
 
 ## Environment
 
-- See `documentation/environment.md`
+- See [`environment.md`](./environment.md)
 
 ## Auth
 

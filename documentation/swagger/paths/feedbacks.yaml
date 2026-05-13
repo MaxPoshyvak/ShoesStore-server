@@ -1,0 +1,71 @@
+/api/feedbacks/add:
+    post:
+        tags: [Feedbacks]
+        summary: Add feedback for a good (auth required)
+        security:
+            - bearerAuth: []
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/FeedbackAddRequest'
+        responses:
+            '201':
+                description: Feedback added
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                feedback:
+                                    $ref: '#/components/schemas/FeedbackResponse'
+            '400':
+                description: Missing fields / invalid rating
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/feedbacks/get:
+    get:
+        tags: [Feedbacks]
+        summary: Get all feedbacks
+        responses:
+            '200':
+                description: Feedback list
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                feedbacks:
+                                    type: array
+                                    items:
+                                        $ref: '#/components/schemas/FeedbackResponse'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'

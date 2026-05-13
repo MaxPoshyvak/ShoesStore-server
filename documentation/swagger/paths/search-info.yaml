@@ -1,0 +1,75 @@
+/api/search-info/add:
+    post:
+        tags: [Search Info]
+        summary: Add a search query (auth required)
+        security:
+            - bearerAuth: []
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/SearchInfoAddRequest'
+        responses:
+            '201':
+                description: Search info entry created
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                searchInfo:
+                                    type: object
+                                    additionalProperties: true
+            '400':
+                description: Missing fields
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/search-info/get:
+    get:
+        tags: [Search Info]
+        summary: Get user search history (auth required)
+        security:
+            - bearerAuth: []
+        responses:
+            '200':
+                description: Search info list (most recent first)
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                searchInfo:
+                                    type: array
+                                    items:
+                                        type: object
+                                        additionalProperties: true
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'

@@ -1,0 +1,481 @@
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+
+    parameters:
+        Authorization:
+            name: Authorization
+            in: header
+            required: false
+            schema:
+                type: string
+            description: '`Bearer <token>`'
+
+    schemas:
+        ErrorMessage:
+            type: object
+            properties:
+                message:
+                    type: string
+            required: [message]
+
+        UserPublic:
+            type: object
+            properties:
+                id:
+                    type: string
+                username:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                role:
+                    type: string
+                    example: user
+            required: [id, username, email]
+
+        UserRegistrationRequest:
+            type: object
+            properties:
+                username:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+                    minLength: 6
+            required: [username, email, password]
+
+        UserLoginRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+                password:
+                    type: string
+                    minLength: 6
+            required: [email, password]
+
+        AuthTokenResponse:
+            type: object
+            properties:
+                message:
+                    type: string
+                token:
+                    type: string
+                user:
+                    $ref: '#/components/schemas/UserPublic'
+            required: [message, token, user]
+
+        UserEditRequest:
+            type: object
+            properties:
+                username:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                phone:
+                    type: string
+                delivery_address:
+                    type: string
+
+        VerifyEmailRequest:
+            type: object
+            properties:
+                token:
+                    type: string
+            required: [token]
+
+        ResendVerificationRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                    format: email
+            required: [email]
+
+        Good:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: PostgreSQL good id
+                name:
+                    type: string
+                description:
+                    type: string
+                price:
+                    type: number
+                old_price:
+                    type: number
+                    nullable: true
+                category:
+                    type: string
+                is_new:
+                    type: boolean
+                stock_quantity:
+                    type: integer
+                    minimum: 0
+                sizes:
+                    type: array
+                    items:
+                        type: string
+                main_image_url:
+                    type: string
+                    format: uri
+                gallery_urls:
+                    type: array
+                    items:
+                        type: string
+                        format: uri
+            required:
+                - name
+                - description
+                - price
+                - category
+                - is_new
+                - stock_quantity
+                - sizes
+                - main_image_url
+                - gallery_urls
+
+        GoodCreateRequest:
+            allOf:
+                - $ref: '#/components/schemas/Good'
+
+        GoodStockUpdateRequest:
+            type: object
+            properties:
+                newStock:
+                    type: integer
+                    minimum: 0
+            required: [newStock]
+
+        OrderItemRequest:
+            type: object
+            properties:
+                good_id:
+                    type: string
+                quantity:
+                    type: integer
+                    minimum: 1
+                size:
+                    type: string
+            required: [good_id, quantity, size]
+
+        OrderCreateRequest:
+            type: object
+            properties:
+                shipping_address:
+                    type: string
+                payment_method:
+                    type: string
+                    example: card
+                customer_notes:
+                    type: string
+                    nullable: true
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/OrderItemRequest'
+                # Guest checkout fields (required when not authenticated)
+                email:
+                    type: string
+                    format: email
+                username:
+                    type: string
+                password:
+                    type: string
+                    minLength: 6
+            required: [shipping_address, payment_method, items]
+
+        OrderItemResponse:
+            type: object
+            properties:
+                good_id:
+                    type: string
+                quantity:
+                    type: integer
+                price_at_purchase:
+                    type: number
+                size:
+                    type: string
+                name:
+                    type: string
+                main_image_url:
+                    type: string
+
+        OrderResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                user_id:
+                    type: string
+                total_amount:
+                    type: number
+                status:
+                    type: string
+                payment_method:
+                    type: string
+                payment_status:
+                    type: string
+                shipping_address:
+                    type: string
+                customer_notes:
+                    type: string
+                created_at:
+                    type: string
+                    format: date-time
+                customer_email:
+                    type: string
+                customer_name:
+                    type: string
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/OrderItemResponse'
+
+        PaymentCreateResponse:
+            type: object
+            properties:
+                url:
+                    type: string
+                    format: uri
+            required: [url]
+
+        PaymentRecord:
+            type: object
+            properties:
+                id:
+                    type: string
+                order_id:
+                    type: string
+                amount:
+                    type: number
+                status:
+                    type: string
+                provider:
+                    type: string
+                transaction_id:
+                    type: string
+                created_at:
+                    type: string
+                    format: date-time
+
+        HistoryAddRequest:
+            type: object
+            properties:
+                goodId:
+                    type: string
+            required: [goodId]
+
+        SearchInfoAddRequest:
+            type: object
+            properties:
+                searchQuery:
+                    type: string
+            required: [searchQuery]
+
+        FeedbackAddRequest:
+            type: object
+            properties:
+                comment:
+                    type: string
+                rating:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                goodId:
+                    type: string
+            required: [comment, rating, goodId]
+
+        FeedbackResponse:
+            type: object
+            properties:
+                _id:
+                    type: string
+                comment:
+                    type: string
+                rating:
+                    type: integer
+                goodName:
+                    type: string
+                goodId:
+                    type: string
+                userId:
+                    type: string
+                username:
+                    type: string
+                userEmail:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+
+        FavoritesAddRequest:
+            type: object
+            properties:
+                goodId:
+                    type: string
+            required: [goodId]
+
+        FavoriteItem:
+            type: object
+            properties:
+                _id:
+                    type: string
+                userId:
+                    type: string
+                goodId:
+                    type: string
+                goodName:
+                    type: string
+                goodPrice:
+                    type: number
+                goodImage:
+                    type: string
+                oldPrice:
+                    type: number
+                    nullable: true
+                category:
+                    type: string
+                is_new:
+                    type: boolean
+                stock_quantity:
+                    type: integer
+                sizes:
+                    type: array
+                    items:
+                        type: string
+                favoritedAt:
+                    type: string
+                    format: date-time
+
+        WaitlistAddRequest:
+            type: object
+            properties:
+                good_id:
+                    type: string
+                email:
+                    type: string
+                    format: email
+                    description: Required for unauthenticated users
+            required: [good_id]
+
+        TelegramLinkRequest:
+            type: object
+            properties:
+                bot:
+                    type: string
+                    enum: [support, info]
+            required: [bot]
+
+        TelegramLinkResponse:
+            type: object
+            properties:
+                message:
+                    type: string
+                link:
+                    type: string
+                    format: uri
+            required: [message, link]
+
+        TelegramSendMessageRequest:
+            type: object
+            properties:
+                chat_id:
+                    type: string
+                message:
+                    type: string
+            required: [chat_id, message]
+
+        TelegramMessage:
+            type: object
+            properties:
+                id:
+                    type: string
+                chat_id:
+                    type: string
+                sender_id:
+                    type: string
+                body:
+                    type: string
+                created_at:
+                    type: string
+                    format: date-time
+
+        TelegramChat:
+            type: object
+            properties:
+                id:
+                    type: string
+                type:
+                    type: string
+                created_at:
+                    type: string
+                    format: date-time
+                customer_name:
+                    type: string
+                customer_email:
+                    type: string
+
+        StatisticResponse:
+            type: object
+            properties:
+                totalRevenue:
+                    type: number
+                activeOrders:
+                    type: integer
+                newCustomers:
+                    type: integer
+                previousCustomers:
+                    type: integer
+                customersTrend:
+                    type: integer
+                weeklyOverview:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            day:
+                                type: string
+                            count:
+                                type: integer
+                totalWeeklyOrders:
+                    type: integer
+                recentActivity:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: true
+                pageViews:
+                    type: object
+                    properties:
+                        currentViews:
+                            type: integer
+                        trend:
+                            type: number
+
+        ActivityItem:
+            type: object
+            properties:
+                _id:
+                    type: string
+                userId:
+                    type: string
+                category:
+                    type: string
+                actionData:
+                    type: string
+                actionAdditionalData:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time

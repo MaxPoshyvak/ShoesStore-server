@@ -1,0 +1,71 @@
+/api/statistic/get:
+    get:
+        tags: [Statistic]
+        summary: Get dashboard statistics (admin only)
+        description: |
+            Returns revenue, active orders, new customers, weekly overview, recent activity,
+            and Google Analytics page views.
+        security:
+            - bearerAuth: []
+        responses:
+            '200':
+                description: Dashboard statistics
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/StatisticResponse'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/statistic/activtiy/get:
+    post:
+        tags: [Statistic]
+        summary: Get all activity log entries (admin only)
+        security:
+            - bearerAuth: []
+        responses:
+            '200':
+                description: List of all activity entries
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                activities:
+                                    type: array
+                                    items:
+                                        $ref: '#/components/schemas/ActivityItem'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'

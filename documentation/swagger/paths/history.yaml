@@ -1,0 +1,81 @@
+/api/history/add:
+    post:
+        tags: [History]
+        summary: Add viewed good to user history (auth required)
+        security:
+            - bearerAuth: []
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/HistoryAddRequest'
+        responses:
+            '201':
+                description: History entry created
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                history:
+                                    type: object
+                                    additionalProperties: true
+            '400':
+                description: Missing fields
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/history/get:
+    get:
+        tags: [History]
+        summary: Get user viewing history (auth required)
+        security:
+            - bearerAuth: []
+        responses:
+            '200':
+                description: History goods list (most recent first)
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                history:
+                                    type: array
+                                    items:
+                                        type: object
+                                        additionalProperties: true
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'

@@ -1,0 +1,39 @@
+/api/waitlist:
+    post:
+        tags: [Waitlist]
+        summary: Add to waitlist for out-of-stock item
+        description: |
+            Authenticated users are identified by their JWT token.
+            Unauthenticated users must provide an `email`.
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/WaitlistAddRequest'
+        responses:
+            '201':
+                description: Added to waitlist
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: true
+            '400':
+                description: Missing good_id or email (for unauthenticated)
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string
