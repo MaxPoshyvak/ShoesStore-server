@@ -1,0 +1,194 @@
+/api/telegram/generate-link/{bot}:
+    get:
+        tags: [Telegram]
+        summary: Generate a Telegram deep link for the given bot (auth required)
+        description: |
+            Bot must be `support` or `info`. Returns a link the user can click to start
+            the Telegram bot and link their account.
+        security:
+            - bearerAuth: []
+        parameters:
+            - name: bot
+              in: path
+              required: true
+              schema:
+                  type: string
+                  enum: [support, info]
+        responses:
+            '200':
+                description: Link generated
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TelegramLinkResponse'
+            '400':
+                description: Invalid bot type
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: User not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/telegram/send-support-message:
+    post:
+        tags: [Telegram]
+        summary: Send a support message to a chat (admin only)
+        description: |
+            Saves the message to the database, emits via Socket.IO, and forwards to Telegram
+            if the sender is an admin (not the chat owner).
+        security:
+            - bearerAuth: []
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/TelegramSendMessageRequest'
+        responses:
+            '200':
+                description: Message sent
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                success:
+                                    type: boolean
+                                message:
+                                    $ref: '#/components/schemas/TelegramMessage'
+            '400':
+                description: Missing required fields
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Chat not found
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string
+
+/api/telegram/get-history/{chatId}:
+    get:
+        tags: [Telegram]
+        summary: Get message history for a chat (admin only)
+        security:
+            - bearerAuth: []
+        parameters:
+            - name: chatId
+              in: path
+              required: true
+              schema:
+                  type: string
+        responses:
+            '200':
+                description: List of messages (oldest first)
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/TelegramMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string
+
+/api/telegram/get-support-chats:
+    get:
+        tags: [Telegram]
+        summary: Get all support chats (admin only)
+        security:
+            - bearerAuth: []
+        responses:
+            '200':
+                description: List of support chats
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/TelegramChat'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                error:
+                                    type: string

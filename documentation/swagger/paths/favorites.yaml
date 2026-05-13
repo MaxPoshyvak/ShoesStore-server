@@ -1,0 +1,127 @@
+/api/favorites/add:
+    post:
+        tags: [Favorites]
+        summary: Add a good to favorites (auth required)
+        security:
+            - bearerAuth: []
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/FavoritesAddRequest'
+        responses:
+            '201':
+                description: Added to favorites
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+            '400':
+                description: Missing goodId
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/favorites/get:
+    get:
+        tags: [Favorites]
+        summary: Get user favorites (auth required)
+        security:
+            - bearerAuth: []
+        responses:
+            '200':
+                description: List of favorite items
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                favorites:
+                                    type: array
+                                    items:
+                                        $ref: '#/components/schemas/FavoriteItem'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/favorites/remove/{goodId}:
+    delete:
+        tags: [Favorites]
+        summary: Remove a good from favorites (auth required)
+        security:
+            - bearerAuth: []
+        parameters:
+            - name: goodId
+              in: path
+              required: true
+              schema:
+                  type: string
+              description: Good id to remove from favorites
+        responses:
+            '200':
+                description: Removed from favorites
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+            '400':
+                description: Invalid goodId
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Favorite not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'

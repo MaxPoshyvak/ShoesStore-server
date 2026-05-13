@@ -1,0 +1,247 @@
+/api/goods:
+    get:
+        tags: [Goods]
+        summary: List all goods
+        description: Supports optional authentication (for personalized results).
+        responses:
+            '200':
+                description: List of goods
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/Good'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+    post:
+        tags: [Goods]
+        summary: Create a good (admin only)
+        security:
+            - bearerAuth: []
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/GoodCreateRequest'
+        responses:
+            '201':
+                description: Good created
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                good:
+                                    $ref: '#/components/schemas/Good'
+            '400':
+                description: Validation error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/goods/{id}:
+    get:
+        tags: [Goods]
+        summary: Get good by id
+        parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                  type: string
+              description: Good id (PostgreSQL)
+        responses:
+            '200':
+                description: A single good
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                good:
+                                    $ref: '#/components/schemas/Good'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '500':
+                description: Server error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+    put:
+        tags: [Goods]
+        summary: Update a good (admin only)
+        security:
+            - bearerAuth: []
+        parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                  type: string
+              description: Good id (PostgreSQL)
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/GoodCreateRequest'
+        responses:
+            '200':
+                description: Good updated
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                good:
+                                    $ref: '#/components/schemas/Good'
+            '400':
+                description: Validation error
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+    delete:
+        tags: [Goods]
+        summary: Delete a good (admin only)
+        security:
+            - bearerAuth: []
+        parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                  type: string
+              description: Good id (PostgreSQL)
+        responses:
+            '200':
+                description: Good deleted
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                good:
+                                    $ref: '#/components/schemas/Good'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+
+/api/goods/stock/{id}:
+    patch:
+        tags: [Goods]
+        summary: Update stock quantity for a good (admin only)
+        security:
+            - bearerAuth: []
+        parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                  type: string
+              description: Good id (PostgreSQL)
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/GoodStockUpdateRequest'
+        responses:
+            '200':
+                description: Stock updated
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                message:
+                                    type: string
+                                good:
+                                    $ref: '#/components/schemas/Good'
+            '400':
+                description: Invalid stock value
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '401':
+                description: Unauthorized
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '403':
+                description: Forbidden (admin required)
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
+            '404':
+                description: Good not found
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ErrorMessage'
