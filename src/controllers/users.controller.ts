@@ -117,7 +117,10 @@ export const getMe = async (req: RequestWithUser, res: Response) => {
         // 1. Запускаємо ПАРАЛЕЛЬНО запити до PostgreSQL
         const [userResult, ordersResult] = await Promise.all([
             // Витягуємо юзера (робимо username as name для фронтенду)
-            pool.query('SELECT id, username, email, phone, delivery_address FROM users WHERE id = $1', [userId]),
+            pool.query(
+                'SELECT id, username, email, phone, delivery_address, telegram_chat_id FROM users WHERE id = $1',
+                [userId],
+            ),
 
             // Витягуємо замовлення з таблиці goods (використовуємо g.name та g.image_url)
             pool.query(
