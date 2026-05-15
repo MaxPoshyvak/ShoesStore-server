@@ -27,7 +27,7 @@ export function setupStartCommand(bot: TelegramBot) {
             const user = userResult.rows[0];
 
             // 2. БІНГО! Ми знаємо хто це. Зберігаємо його chatId і видаляємо одноразовий токен
-            await pool.query('UPDATE users SET telegram_chat_id = $1, telegram_auth_token = NULL WHERE id = $2', [
+            await pool.query('UPDATE users SET tg_support_chat_id = $1, telegram_auth_token = NULL WHERE id = $2', [
                 chatId,
                 user.id,
             ]);

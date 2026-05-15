@@ -12,7 +12,7 @@ export const getUserMessage = (bot: TelegramBot) => {
         const chatId = msg.chat.id;
         const userMessage = msg.text || '';
 
-        const user = await pool.query('SELECT * FROM users WHERE telegram_chat_id = $1', [chatId]);
+        const user = await pool.query('SELECT * FROM users WHERE tg_support_chat_id = $1', [chatId]);
         const chat = await pool.query('SELECT * FROM chats WHERE user_id = $1', [user.rows[0]?.id || null]);
 
         const message = await pool.query(
