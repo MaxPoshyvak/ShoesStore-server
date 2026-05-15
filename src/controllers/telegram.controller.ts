@@ -32,7 +32,7 @@ export const generateLinkToTelegram = async (req: RequestWithUser, res: Response
 
         return res.status(200).json({
             message: 'Telegram link generated successfully',
-            link: `https://t.me/${bot === 'support' ? 'ShoesSupportSlickBot' : '@ShoesStoreSlickBot'}?start=${authToken}`,
+            link: `https://t.me/${bot === 'support' ? 'ShoesSupportSlickBot' : 'ShoesStoreSlickBot'}?start=${authToken}`,
         });
     } catch (error) {
         return res.status(500).json({ message: 'Error generating Telegram link' });
