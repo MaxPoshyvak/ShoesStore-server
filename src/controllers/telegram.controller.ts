@@ -139,3 +139,18 @@ export const getChats = async (req: RequestWithUser, res: Response) => {
         return res.status(500).json({ error: 'Внутрішня помилка сервера' });
     }
 };
+
+export const disconnectNotifications = async (req: RequestWithUser, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        await pool.query('UPDATE users SET telegram_chat_id = NULL WHERE id = $1', [userId]);
+
+        return res.status(200).json({ message: 'Notifications disconnected successfully' });
+    } catch (error) {
+        console.error('Error disconnecting notifications:', error);
+        return res.status(500).json({ error: 'Внутрішня помилка сервера' });
+    }
+};
