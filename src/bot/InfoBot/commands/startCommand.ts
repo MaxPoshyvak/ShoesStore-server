@@ -7,6 +7,15 @@ export function setupStartCommand(bot: TelegramBot) {
         return;
     }
 
+    bot.onText(/\/start/, async (msg) => {
+        const chatId = msg.chat.id;
+        try {
+            await bot.sendMessage(chatId, 'Hello! I am an information bot. I can provide you with useful information.');
+        } catch (error) {
+            console.error('❌ Помилка при виконанні команди /start:', error);
+        }
+    });
+
     bot.onText(/\/start (.+)/, async (msg, match) => {
         if (!match || match.length < 2) {
             return bot.sendMessage(msg.chat.id, '❌ Помилка: посилання застаріло або недійсне.');
