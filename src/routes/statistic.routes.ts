@@ -5,7 +5,7 @@ import { adminMiddleware } from '../middlewares/adminMiddleware';
 
 const router = Router();
 
-router.post('/activtiy/get', authMiddleware, adminMiddleware, getActivity);
+router.post('/activty/get', authMiddleware, adminMiddleware, getActivity);
 router.get('/get', authMiddleware, adminMiddleware, getStatistic);
 
 export default router;
