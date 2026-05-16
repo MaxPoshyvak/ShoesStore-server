@@ -45,11 +45,13 @@ export const userRegistration = async (req: Request, res: Response) => {
             [userId, username, email, hashedPassword, verificationToken, tokenExpiration],
         );
 
-        logActivity({
-            userId: newUser.rows[0].id,
-            category: 'Register',
-            actionData: email,
-        });
+        if (!email.startsWith('testuser_')) {
+            logActivity({
+                userId: newUser.rows[0].id,
+                category: 'Register',
+                actionData: email,
+            });
+        }
 
         await sendVerificationEmail(email, verificationToken);
         res.status(201).json({
