@@ -195,3 +195,20 @@ export const deleteGood = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const getGoodsBySearchQuery = async (req: Request, res: Response) => {
+    const q = req.params.q;
+    try {
+        const result = await pool.query(
+            'SELECT * FROM goods WHERE name ILIKE $1 OR description ILIKE $1 OR category ILIKE $1',
+            [`%${q}%`],
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Good not found' });
+        }
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error('Error during getting goods by search query:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

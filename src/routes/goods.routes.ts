@@ -6,6 +6,7 @@ import {
     updateGood,
     updateGoodStock,
     deleteGood,
+    getGoodsBySearchQuery,
 } from '../controllers/goods.controller';
 import { validateGoodCreation } from '../middlewares/goodsValidation';
 import { authMiddleware } from '../middlewares/authMiddleware';
@@ -14,7 +15,10 @@ import { optionalAuthMiddleware } from '../middlewares/optionalAuthMiddleware';
 const router = Router();
 
 router.get('/', optionalAuthMiddleware, getGoods);
+router.get('/search/:q', getGoodsBySearchQuery);
+
 router.get('/:id', getGoodById);
+
 router.post('/', validateGoodCreation, authMiddleware, adminMiddleware, postGoods);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteGood);
 
