@@ -11,6 +11,7 @@ import {
 import { validateUserLogin, validateUserRegistration } from '../middlewares/userValidation';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { adminMiddleware } from '../middlewares/adminMiddleware';
+import resendEmailLimiter from '../middlewares/rateLimits/resendEmailLimiter';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.post('/registration', validateUserRegistration, userRegistration);
 router.post('/login', validateUserLogin, userLogin);
 
 router.post('/verify-email', verifyEmail);
-router.post('/resend-verification-email', resendVerificationEmail);
+router.post('/resend-verification-email', resendEmailLimiter, resendVerificationEmail);
 
 router.get('/me', authMiddleware, getMe);
 router.patch('/edit', authMiddleware, editUser);

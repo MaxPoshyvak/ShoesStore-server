@@ -270,7 +270,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
         const userResult = await pool.query('SELECT email, id FROM users WHERE email = $1', [email]);
 
         if (userResult.rows.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(200).json({ message: 'Verification email resent successfully' });
         }
 
         const userEmail = userResult.rows[0].email;
@@ -284,7 +284,9 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
             userId,
         ]);
 
-        await sendVerificationEmail(userEmail, newToken);
+        sendVerificationEmail(userEmail, newToken).catch((error) => {
+            console.error('Error sending verification email:', error);
+        });
 
         res.status(200).json({ message: 'Verification email resent successfully' });
     } catch (error) {
