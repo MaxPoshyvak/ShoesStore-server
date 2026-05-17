@@ -127,7 +127,7 @@ export const postOrders = async (req: RequestWithUser, res: Response): Promise<v
                 logActivity({
                     userId,
                     category: 'OutOfStock',
-                    actionData: item.good_id,
+                    actionData: item.name,
                     actionAdditionalData: 'out_of_stock',
                 });
             }
