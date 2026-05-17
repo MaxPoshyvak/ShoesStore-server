@@ -235,7 +235,7 @@ export const editUser = async (req: RequestWithUser, res: Response) => {
 };
 
 export const verifyEmail = async (req: RequestWithUser, res: Response) => {
-    const { token } = req.body;
+    const { token, email } = req.body;
 
     if (!token) {
         return res.status(400).json({ message: 'Verification token is required' });
@@ -243,8 +243,8 @@ export const verifyEmail = async (req: RequestWithUser, res: Response) => {
 
     try {
         const checkToken = await pool.query(
-            'SELECT id FROM users WHERE verification_token = $1 AND token_expires_at > NOW()',
-            [token],
+            'SELECT id FROM users WHERE verification_token = $1 AND token_expires_at > NOW() AND email = $2',
+            [token, email],
         );
 
         if (checkToken.rows.length === 0) {
@@ -252,8 +252,8 @@ export const verifyEmail = async (req: RequestWithUser, res: Response) => {
         }
 
         await pool.query(
-            'UPDATE users SET email_verified = true, verification_token = null, token_expires_at = null WHERE id = $1',
-            [checkToken.rows[0].id],
+            'UPDATE users SET email_verified = true, verification_token = null, token_expires_at = null WHERE id = $1 AND verification_token = $2',
+            [checkToken.rows[0].id, token],
         );
 
         res.status(200).json({ message: 'Email verified successfully', success: true });
