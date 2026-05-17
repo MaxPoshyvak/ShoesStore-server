@@ -87,7 +87,7 @@ export const sendRestockEmail = async (emails: string[], goodId: number | string
 
 export const sendVerificationEmail = async (email: string, token: string) => {
     try {
-        const verificationUrl = `${process.env.CLIENT_URL}/verify?email=${email}?token=${token}`;
+        const verificationUrl = `${process.env.CLIENT_URL}/verify?email=${email}&token=${token}`;
 
         const htmlContent = `
     <div style="background-color: #f3f4f6; padding: 50px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
