@@ -12,10 +12,9 @@ if (!process.env.GOOGLE_PRIVATE_KEY) {
 const analyticsDataClient = new BetaAnalyticsDataClient({
     credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Відновлюємо перенесення рядків
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n').replace(/"/g, ''),
     },
 });
-
 // Твій Property ID з Google Analytics (це цифри, не G-XXXX)
 const propertyId = '537123339';
 
@@ -25,29 +24,34 @@ async function getPageViews() {
         const [response] = await analyticsDataClient.runReport({
             property: `properties/${propertyId}`,
             dateRanges: [
-                { startDate: '7daysAgo', endDate: 'today' }, // Поточний тиждень
-                { startDate: '14daysAgo', endDate: '7daysAgo' }, // Минулий тиждень (для тренду)
+                { startDate: '7daysAgo', endDate: 'today' }, // Поточний тиждень (index 0)
+                { startDate: '14daysAgo', endDate: '7daysAgo' }, // Минулий тиждень (index 1)
             ],
-            metrics: [{ name: 'screenPageViews' }], // Просимо віддати перегляди сторінок
+            metrics: [{ name: 'screenPageViews' }],
+            // 🔥 Обов'язково кажемо Гуглу повертати дані, навіть якщо переглядів було 0
+            keepEmptyRows: true,
         });
 
-        // Google повертає масив, дістаємо цифри
-        if (
-            !response.rows ||
-            response.rows.length < 2 ||
-            !response.rows[0].metricValues ||
-            !response.rows[1].metricValues
-        ) {
+        // Якщо даних взагалі немає
+        if (!response.rows || response.rows.length === 0) {
             return { currentViews: 0, trend: 0 };
         }
-        const currentViews = Number(response.rows[0].metricValues[0].value);
-        const previousViews = Number(response.rows[1].metricValues[0].value);
 
-        // Рахуємо відсоток як на дизайні (+8.1%)
-        const trend = previousViews > 0 ? (((currentViews - previousViews) / previousViews) * 100).toFixed(1) : 100;
+        // Завдяки keepEmptyRows ми безпечно дістаємо дані (або ставимо 0 як запасний варіант)
+        const currentViews = Number(response.rows[0]?.metricValues?.[0]?.value || 0);
+        const previousViews = Number(response.rows[1]?.metricValues?.[0]?.value || 0);
+
+        // Рахуємо тренд (захист від ділення на нуль)
+        let trend = 100; // Якщо раніше було 0, а зараз є перегляди — це зростання на 100%
+        if (previousViews > 0) {
+            trend = Number((((currentViews - previousViews) / previousViews) * 100).toFixed(1));
+        } else if (currentViews === 0) {
+            trend = 0; // Якщо і там і там нулі
+        }
 
         return { currentViews, trend };
     } catch (error) {
+        // 🔥 Якщо є помилка авторизації ключа, вона виведеться ТУТ у терміналі бекенду!
         console.error('GA4 Error:', error);
         return { currentViews: 0, trend: 0 };
     }
