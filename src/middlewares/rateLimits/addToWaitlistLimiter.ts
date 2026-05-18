@@ -1,9 +1,9 @@
 import rateLimit from 'express-rate-limit';
 
-const resendEmailLimiter = rateLimit({
-    windowMs: 1 * 58 * 1000,
-    max: 1,
+const addToWaitlistLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 4,
     message: { message: 'Too many requests, please try again later.' },
 });
 
-export default resendEmailLimiter;
+export default addToWaitlistLimiter;
